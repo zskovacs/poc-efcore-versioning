@@ -1,0 +1,30 @@
+@host = http://localhost:5200
+
+### Create
+POST {{host}}/create/
+Content-Type: application/json
+
+{
+  "value": "harmadik"
+}
+
+### Update
+PATCH {{host}}/update/
+Content-Type: application/json
+
+{
+  "id": "4871a28d-775f-4f2b-ab19-6117c1328a69",
+  "value": "elso_jav"
+}
+
+### Get
+GET {{host}}/get?id=4871a28d-775f-4f2b-ab19-6117c1328a69
+Content-Type: application/json
+
+### Get-All
+GET {{host}}/getall/
+Content-Type: application/json
+
+### Delete
+DELETE {{host}}/delete?id=a2adfdaa-a6ee-4771-8d38-87d1373e9264
+Content-Type: application/json
