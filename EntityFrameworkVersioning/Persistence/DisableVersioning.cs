@@ -1,6 +1,6 @@
 ﻿namespace EntityFrameworkVersioning.Persistence;
 
-public class DisableVersioningDbContext : IDisposable
+public class DisableVersioning : IDisposable
 {
     private readonly AppDbContext _dbContext;
     
@@ -9,7 +9,7 @@ public class DisableVersioningDbContext : IDisposable
     public DbSet<ArticleEntity> Articles => _dbContext.Articles;
     public DbSet<ArticleBaseEntity> ArticleBases => _dbContext.ArticleBases;
 
-    public DisableVersioningDbContext(AppDbContext dbContext)
+    public DisableVersioning(AppDbContext dbContext)
     {
         _dbContext = dbContext;
         _dbContext.DisableVersioning();
