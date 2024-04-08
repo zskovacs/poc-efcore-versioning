@@ -5,12 +5,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddDbContext<AppDbContext>((sp,options) =>
 {
     options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+
 
 builder.Services.AddScoped<ISaveChangesInterceptor, VersionInterceptor>();
 var app = builder.Build();

@@ -61,6 +61,8 @@ public class BlogController : ControllerBase
     [ProducesDefaultResponseType]
     public async Task<IActionResult> List()
     {
+        //using var dbContext = new DisableVersioningDbContext(_dbContext);
+        
         var response = await _dbContext.Blogs.ToListAsync(HttpContext.RequestAborted);
         return Ok(response);
     }

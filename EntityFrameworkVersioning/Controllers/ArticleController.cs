@@ -1,14 +1,18 @@
-﻿namespace EntityFrameworkVersioning.Controllers;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+
+namespace EntityFrameworkVersioning.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class ArticleController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
-
-    public ArticleController(AppDbContext dbContext)
+    private readonly IMapper _mapper;
+    public ArticleController(AppDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -18,19 +22,8 @@ public class ArticleController : ControllerBase
     public async Task<IActionResult> Details(Guid id)
     {
         var result = await _dbContext.Articles
-            .Include(x => x.Base)
-            .ThenInclude(x => x.Blog)
-            .ThenInclude(x => x.Details)
-            .Where(x => x.BaseId == id)
-            .Select(x => new ArticleDto()
-            {
-                Id = x.BaseId,
-                Name = x.Name,
-                Blog = x.Base.Blog.Details.Single().Name,
-                Revision = x.Revision,
-                ValidFrom = x.ValidFrom
-            })
-            .SingleOrDefaultAsync(HttpContext.RequestAborted);
+            .ProjectTo<ArticleDto>(_mapper.ConfigurationProvider)
+            .SingleOrDefaultAsync(x => x.Id == id, HttpContext.RequestAborted);
 
         return result is null ? NotFound() : Ok(result);
     }
@@ -47,7 +40,9 @@ public class ArticleController : ControllerBase
             return NotFound();
         
         response.Name = request.Name;
-        response.Base.BlogId = request.BlogId;
+        
+        if(request.BlogId.HasValue)
+            response.Base.BlogId = request.BlogId.Value;
         
         await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
         
@@ -60,10 +55,13 @@ public class ArticleController : ControllerBase
     [ProducesDefaultResponseType]
     public async Task<IActionResult> Create([FromBody] CreateArticleRequest request)
     {
-        var details = new ArticleEntity
+        if (!request.BlogId.HasValue)
+            return BadRequest("Blog id missing");
+        
+        var details = new ArticleEntity()
         {
             Name = request.Name,
-            Base = { BlogId = request.BlogId }
+            Base = { BlogId = request.BlogId.Value}
         };
         
         await _dbContext.AddAsync(details, HttpContext.RequestAborted);
@@ -74,11 +72,13 @@ public class ArticleController : ControllerBase
 
     [HttpGet]
     [Route("list")]
-    [ProducesResponseType(typeof(List<ArticleEntity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<ArticleDto>), StatusCodes.Status200OK)]
     [ProducesDefaultResponseType]
     public async Task<IActionResult> List()
     {
-        var response = await _dbContext.Articles.ToListAsync(HttpContext.RequestAborted);
+        var response = await _dbContext.Articles
+            .ProjectTo<ArticleDto>(_mapper.ConfigurationProvider)
+            .ToListAsync(HttpContext.RequestAborted);
         return Ok(response);
     }
     

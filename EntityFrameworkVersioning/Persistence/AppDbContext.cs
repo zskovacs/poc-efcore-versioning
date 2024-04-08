@@ -9,7 +9,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<BlogEntity> Blogs => Set<BlogEntity>();
     public DbSet<ArticleEntity> Articles => Set<ArticleEntity>();
     public DbSet<ArticleBaseEntity> ArticleBases => Set<ArticleBaseEntity>();
+    
+    private bool IsVersionFilterEnabled { get; set; } = true;
 
+    public void EnableVersioning() => IsVersionFilterEnabled = true;
+    public void DisableVersioning() => IsVersionFilterEnabled = false; 
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new BlogEntityConfiguration());
@@ -32,7 +37,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected virtual Expression<Func<TEntity, bool>> CreateVersionFilterExpression<TEntity>() where TEntity : class
     {
-        return e => ((IVersionEntity)e).ValidTo == DateTime.MaxValue;
-        ;
+        return e => !IsVersionFilterEnabled || ((IVersionEntity)e).ValidTo == DateTime.MaxValue;
     }
 }
