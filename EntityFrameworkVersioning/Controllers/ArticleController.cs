@@ -9,6 +9,7 @@ public class ArticleController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
     private readonly IMapper _mapper;
+
     public ArticleController(AppDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
@@ -27,7 +28,7 @@ public class ArticleController : ControllerBase
 
         return result is null ? NotFound() : Ok(result);
     }
-    
+
     [HttpPatch]
     [Route("update")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -38,14 +39,14 @@ public class ArticleController : ControllerBase
 
         if (response is null)
             return NotFound();
-        
+
         response.Name = request.Name;
-        
-        if(request.BlogId.HasValue)
+
+        if (request.BlogId.HasValue)
             response.Base.BlogId = request.BlogId.Value;
-        
+
         await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-        
+
         return Ok(response);
     }
 
@@ -57,13 +58,13 @@ public class ArticleController : ControllerBase
     {
         if (!request.BlogId.HasValue)
             return BadRequest("Blog id missing");
-        
+
         var details = new ArticleEntity()
         {
             Name = request.Name,
-            Base = { BlogId = request.BlogId.Value}
+            Base = { BlogId = request.BlogId.Value }
         };
-        
+
         await _dbContext.AddAsync(details, HttpContext.RequestAborted);
         await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
@@ -81,7 +82,7 @@ public class ArticleController : ControllerBase
             .ToListAsync(HttpContext.RequestAborted);
         return Ok(response);
     }
-    
+
     [HttpDelete]
     [Route("delete/{id:guid}")]
     [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]
@@ -98,5 +99,4 @@ public class ArticleController : ControllerBase
 
         return NoContent();
     }
-    
 }
